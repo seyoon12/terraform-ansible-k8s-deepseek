@@ -1,0 +1,219 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: observe
+  labels:
+    app: prometheus-config
+data:
+  prometheus-config.yaml: |
+    global:
+      scrape_interval: 7s
+    scrape_configs:
+      - job_name: ubuntu-worker
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets:
+              - 10.0.2.15:9100
+            labels:
+              hostname: 'ubuntu-worker'
+
+      - job_name: ubuntu-master
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets:
+              - 192.168.10.11:9100
+            labels:
+              hostname: 'ubuntu-master'
+        relabel_configs:
+          - source_labels: [hostname]
+            target_label: nodename
+            action: replace
+
+      - job_name: 'app-service'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - app-svc.observe.svc.cluster.local:5000
+
+      - job_name: 'grafana-service'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - grafana-service.observe.svc.cluster.local:3000
+
+      - job_name: 'loki-distributor'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - loki-clusterip-distributor.observe.svc.cluster.local:7946
+
+      - job_name: 'loki-compactor'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - loki-headless-compactor.observe.svc.cluster.local:3100
+
+      - job_name: 'loki-ingester'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - loki-headless-ingester.observe.svc.cluster.local:7946
+
+      - job_name: 'loki-querier'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - loki-headless-querier.observe.svc.cluster.local:3100
+
+      - job_name: 'mimir'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - mimir-headless.observe.svc.cluster.local:7946
+              - mimir-nodeport.observe.svc.cluster.local:9009
+
+      - job_name: 'minio'
+        metrics_path: /minio/v2/metrics/cluster
+        static_configs:
+          - targets:
+              - minio-headless.observe.svc.cluster.local:9000
+              - minio-nodeport-api.observe.svc.cluster.local:9000
+              - minio-nodeport-ui.observe.svc.cluster.local:9001
+
+      - job_name: 'tempo-distributor'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - tempo-distributor.observe.svc.cluster.local:3200
+
+      - job_name: 'tempo-ingester'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - tempo-ingester.observe.svc.cluster.local:3200
+
+      - job_name: 'tempo-querier'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - tempo-querier.observe.svc.cluster.local:3200
+
+      - job_name: 'tempo-query-frontend'
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - tempo-query-frontend.observe.svc.cluster.local:3200
+
+      - job_name: 'istiod'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istiod;http-monitoring
+      - job_name: 'istio-mesh'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-telemetry;prometheus
+
+      - job_name: 'envoy-stats'
+        metrics_path: /stats/prometheus
+        kubernetes_sd_configs:
+        - role: pod
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_container_port_name]
+          action: keep
+          regex: '.*-envoy-prom'
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:15090
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: pod_name
+
+      - job_name: 'istio-policy'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-policy;http-monitoring
+
+      - job_name: 'istio-telemetry'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-telemetry;http-monitoring
+
+      - job_name: 'pilot'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-pilot;http-monitoring
+
+      - job_name: 'galley'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-galley;http-monitoring
+
+      - job_name: 'citadel'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+
+        scrape_interval: 15s
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istio-citadel;http-monitoring

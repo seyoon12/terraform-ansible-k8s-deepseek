@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mimir
+  namespace: observe
+spec:
+  serviceName: "mimir"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mimir
+  template:
+    metadata:
+      labels:
+        app: mimir
+    spec:
+      containers:
+        - name: mimir
+          image: grafana/mimir:2.10.1
+          env:
+            - name: MIMIR_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mimir-secret
+                  key: access-key-id
+            - name: MIMIR_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mimir-secret
+                  key: secret-access-key
+          resources:
+            limits:
+              memory: "1Gi"
+          securityContext:
+            runAsUser: 0
+          args:
+            - -ingester.native-histograms-ingestion-enabled=true
+            - -config.file=/etc/mimir/mimir.yaml
+            - -validation.max-label-names-per-series=60
+          ports:
+            - containerPort: 9009
+            - containerPort: 7946
+          volumeMounts:
+            - name: mimir-config
+              mountPath: /etc/mimir
+            - name: mimir-data
+              mountPath: /var/lib/mimir
+      volumes:
+        - name: mimir-config
+          configMap:
+            name: mimir-config
+        - name: mimir-data
+          persistentVolumeClaim:
+            claimName: mimir-pvc
+
+

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tempo-ingester
+  namespace: observe
+spec:
+  serviceName: "tempo-ingester"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tempo-ingester
+  template:
+    metadata:
+      labels:
+        app: tempo-ingester
+    spec:
+      containers:
+        - name: tempo-ingester
+          image: grafana/tempo:2.4.1
+          args:
+            - "-target=ingester"
+            - "-config.file=/etc/tempo.yaml"
+          ports:
+            - containerPort: 3200
+            - containerPort: 7946
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/tempo.yaml
+              subPath: tempo.yaml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: tempo-config

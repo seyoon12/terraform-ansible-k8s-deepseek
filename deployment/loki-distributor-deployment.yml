@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki-distributor
+  namespace: observe
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: loki-distributor
+      component: distributor
+  template:
+    metadata:
+      labels:
+        app: loki-distributor
+        component: distributor
+    spec:
+      containers:
+      - name: loki-distributor
+        image: grafana/loki:2.8.0
+        command: ["/usr/bin/loki"]
+        args:
+          - "-config.file=/etc/loki/loki.yaml"
+          - "-target=distributor"
+          - "-config.expand-env=true"
+        ports:
+        - containerPort: 3100 
+        - containerPort: 7946 
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/loki/loki.yaml
+          subPath: loki.yaml
+      volumes:
+      - name: config-volume
+        configMap:
+          name: loki-config
+          items:
+            - key: loki.yaml
+              path: loki.yaml
+

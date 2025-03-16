@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki-compactor
+  namespace: observe
+spec:
+  serviceName: "loki-headless-compactor"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki-compactor
+  template:
+    metadata:
+      labels:
+        app: loki-compactor
+    spec:
+      containers:
+      - name: loki-compactor
+        image: grafana/loki:2.8.0
+        command: ["/usr/bin/loki"]
+        args:
+          - "-config.file=/etc/loki/loki.yaml"
+          - "-target=compactor"
+          - "-config.expand-env=true"
+        ports:
+        - containerPort: 3100
+        - containerPort: 7946
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/loki/loki.yaml
+          subPath: loki.yaml
+        securityContext:
+          runAsUser: 0
+      volumes:
+      - name: config-volume
+        configMap:
+          name: loki-config
+          items:
+            - key: loki.yaml
+              path: loki.yaml

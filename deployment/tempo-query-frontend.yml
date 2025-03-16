@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-query-frontend
+  namespace: observe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo-query-frontend
+  template:
+    metadata:
+      labels:
+        app: tempo-query-frontend
+    spec:
+      containers:
+        - name: tempo-query-frontend
+          image: grafana/tempo:2.4.1
+          args:
+            - "-target=query-frontend"
+            - "-config.file=/etc/tempo.yaml"
+            - "-log.level=debug"
+          ports:
+            - containerPort: 3200
+            - containerPort: 9095
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/tempo.yaml
+              subPath: tempo.yaml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: tempo-config
