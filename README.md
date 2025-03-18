@@ -1,6 +1,7 @@
-<img src="https://github.com/user-attachments/assets/f44c77e5-7f92-4cf6-b4e7-f26cf14fe0e2" width="1200">
-
 # IaC & Kubernetes
+<img src="https://github.com/user-attachments/assets/f44c77e5-7f92-4cf6-b4e7-f26cf14fe0e2" width="800">
+
+### 설명
 1) Terraform과 Ansible을 통해 Kubernetes 환경 구축
 2) Istio를 통해 서비스 메시 구성
 3) Longhorn을 통해 스토리지 가용성 확보
@@ -15,5 +16,5 @@
 5) Runtime : Containerd
 6) k8s : 1.28
 
-### 환경 구조
+### 구조
 ![image](https://github.com/user-attachments/assets/6b840066-e8a9-4fb4-9ed3-22f6e9e69705)
