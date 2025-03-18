@@ -15,3 +15,5 @@
 
 ### 동작 과정
 <img src="https://github.com/user-attachments/assets/f44c77e5-7f92-4cf6-b4e7-f26cf14fe0e2" width="1200">
+
+![image](https://github.com/user-attachments/assets/6b840066-e8a9-4fb4-9ed3-22f6e9e69705)
