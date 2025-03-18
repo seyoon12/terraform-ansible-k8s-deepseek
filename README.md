@@ -17,4 +17,4 @@
 6) k8s : 1.28
 
 ### 구조
-![image](https://github.com/user-attachments/assets/6b840066-e8a9-4fb4-9ed3-22f6e9e69705)
+<img src="https://github.com/user-attachments/assets/6b840066-e8a9-4fb4-9ed3-22f6e9e69705" width="800">
