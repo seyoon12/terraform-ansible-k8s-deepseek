@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: observe # 생성할 namepsace의 이름
-  labels:            # 태그 / 리소스 별로 구분하면 편할 듯
-    environment: oberserve # 리소스가 어떤 환경에 속하는지 구분
-    team: observe    # 리소스를 관리하는 팀
-
