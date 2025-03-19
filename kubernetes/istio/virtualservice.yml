@@ -1,0 +1,102 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: app-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway 
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - k8s-istiosys-ingressg-36f5a3585e-d34dd49c21a00f53.elb.ap-northeast-2.amazonaws.com
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app-virtualservice
+  namespace: istio-system
+spec:
+  hosts:
+  - k8s-istiosys-ingressg-36f5a3585e-d34dd49c21a00f53.elb.ap-northeast-2.amazonaws.com
+  gateways:
+  - app-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: app-svc.app.svc.cluster.local
+        port:
+          number: 5000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: app-svc
+spec:
+  hosts:
+    - app-svc.app.svc.cluster.local
+  gateways:
+    - app-gateway
+  http:
+    - route:
+        - destination:
+            host: app-svc.app.svc.cluster.local
+            subset: v1
+          weight: 50
+        - destination:
+            host: app-svc.app.svc.cluster.local
+            subset: v2
+          weight: 50
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: "5xx"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: app-svc
+  namespace: app
+spec:
+  host: app-svc.app.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 10
+        maxRequestsPerConnection: 5
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 10s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ingress-gateway-circuit-breaker
+  namespace: istio-system
+spec:
+  host: ingressgateway.istio-system.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 10  # 최대 10개 요청 대기 가능
+        maxRequestsPerConnection: 5  # 하나의 연결에서 최대 5개의 요청만 허용
+    outlierDetection:
+      consecutive5xxErrors: 2  # 2번 연속 5xx 발생 시 차단
+      interval: 5s              # 5초 간격으로 상태 체크
+      baseEjectionTime: 30s      # 30초 동안 해당 노드 격리

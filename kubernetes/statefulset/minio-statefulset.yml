@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: observe
+spec:
+  serviceName: "minio-service"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          args:
+            - server
+            - /data1
+            - /data2
+            - "--console-address=:9001"
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          volumeMounts:
+            - name: data1
+              mountPath: /data1
+            - name: data2
+              mountPath: /data2
+          resources:
+            limits:
+              memory: "1Gi"
+      volumes:
+        - name: data1
+          persistentVolumeClaim:
+            claimName: data2-1-pvc
+        - name: data2
+          persistentVolumeClaim:
+            claimName: data2-2-pvc
+

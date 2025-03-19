@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+  namespace: observe
+spec: # deployment의 리소스 설정을 의미한다
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec: # pod의 리소스 설정을 의미한다
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.43.0
+        args:
+          - --web.console.templates=/etc/prometheus/consoles
+          - --web.console.libraries=/etc/prometheus/console_libraries
+          - --storage.tsdb.retention.time=1h
+          - --config.file=/etc/prometheus/prometheus-config.yaml
+          - --enable-feature=exemplar-storage
+          - --web.enable-lifecycle
+          - --web.route-prefix=/
+          - --enable-feature=remote-write-receiver
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-config

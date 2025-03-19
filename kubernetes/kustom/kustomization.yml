@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kube-system
+
+resources:
+- kube-state-sa.yml
+- kube-state-cluster-role.yml
+- kube-state-rolebiding.yml
+- kube-state-deployment.yml
+- kube-state-svc.yml

@@ -1,0 +1,11 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: observe-sidecar
+  namespace: observe
+spec:
+  egress:
+  - hosts:
+    - "./*"  # 같은 네임스페이스 내 서비스 허용
+    - "istio-system/*"  # istio 통신 허용
+

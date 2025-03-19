@@ -1,0 +1,234 @@
+- name: Deploy Flannel and Configure kubectl
+  hosts: master
+  become: true
+  tasks:
+    - name: Apply Flannel network configuration
+      shell: |
+        kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+    - name: Add kubectl aliases to .bashrc
+      lineinfile:
+        path: ~/.bashrc
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "alias k='kubectl'"
+        - "alias kns='kubectl config set-context --current --namespace'"
+
+    - name: Source .bashrc
+      shell: . ~/.bashrc
+
+- name: Configure containerd
+  hosts: all
+  become: true
+  tasks:
+    - name: Modify containerd config.toml to use SystemdCgroup
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Restart containerd service
+      service:
+        name: containerd
+        state: restarted
+
+    - name: Restart kubelet service
+      service:
+        name: kubelet
+        state: restarted
+
+- name: Install required packages on worker nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - nfs-common
+          - open-iscsi
+        state: present
+        update_cache: yes
+
+    - name: Enable iSCSI module
+      lineinfile:
+        path: /etc/modules
+        line: "iscsi_tcp"
+        create: yes
+
+    - name: Load iSCSI module
+      command: modprobe iscsi_tcp
+      changed_when: false
+
+- name: Install and configure Longhorn on master node
+  hosts: master
+  become: yes
+  tasks:
+    - name: Check if Helm is installed
+      command: helm version
+      register: helm_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install Helm if not present
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      when: helm_check.rc != 0
+
+    - name: Add Longhorn Helm repo
+      command: helm repo add longhorn https://charts.longhorn.io
+      changed_when: false
+
+    - name: Update Helm repositories
+      command: helm repo update
+      changed_when: false
+
+    - name: Create Longhorn namespace
+      command: kubectl create namespace longhorn-system
+      ignore_errors: yes
+
+    - name: Install Longhorn using Helm (v1.6.4)
+      command: >
+        helm install longhorn longhorn/longhorn
+        --namespace longhorn-system
+        --version 1.6.4
+        --set defaultSettings.defaultDataPath="/var/lib/longhorn"
+        --set defaultSettings.defaultDataLocality="best-effort"
+        --set defaultSettings.replicaAutoBalance="best-effort"
+        --set defaultSettings.defaultReplicaCount=1
+        --set defaultSettings.defaultLonghornStaticStorageClass="longhorn-static"
+      args:
+        chdir: "/tmp"
+      ignore_errors: yes
+
+    - name: Wait for Longhorn to be ready
+      command: kubectl wait --for=condition=Ready pod --all -n longhorn-system --timeout=300s
+      changed_when: false
+
+- name: Deploy Kubernetes
+  hosts: master
+  become: yes
+  tasks:
+    - name: Sync /home/kuber directory to master node
+      ansible.posix.synchronize:
+        src: "/home/kuber/"
+        dest: "/home/kuber/"
+        recursive: yes
+        archive: yes
+
+    - name: Apply Kubernetes namespace
+      command: kubectl apply -f /home/kuber/namespaces/
+
+    - name: Install Metrics Server
+      command: >
+        kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+      ignore_errors: no
+
+    - name: Install HPA
+      command: >
+        kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+      ignore_errors: no
+
+    - name: Build Fluentd fluetnd Docker Image
+      command: >
+        docker build -t fluentd -f /home/kuber/fluentd/Dockerfile .
+      args:
+        chdir: "/home/kuber/fluentd"
+
+    - name: Build Fluentd app Docker Image
+      command: >
+        docker build -t app -f /home/kuber/fluentd/Dockerfile .
+      args:
+        chdir: "/home/kuber/app"
+
+    - name: Apply Kubernetes kustomization
+      command: kubectl apply -k /home/kuber/kustom/
+
+    - name: Apply Kubernetes storageclass
+      command: kubectl apply -f /home/kuber/storage/
+
+    - name: Apply Kubernetes pvc
+      command: kubectl apply -f /home/kuber/pvc/
+
+    - name: Apply Kubernetes secrets
+      command: kubectl apply -f /home/kuber/secrets/
+
+    - name: Apply Kubernetes configmap
+      command: kubectl apply -f /home/kuber/configMap/
+
+    - name: Apply Kubernetes deployment
+      command: kubectl apply -f /home/kuber/deployment/
+
+    - name: Apply Kubernetes daemonsets
+      command: kubectl apply -f /home/kuber/daemonsets/
+
+    - name: Apply Kubernetes statefulset
+      command: kubectl apply -f /home/kuber/statefulset/
+
+    - name: Apply Kubernetes service
+      command: kubectl apply -f /home/kuber/svc/
+
+    - name: Apply Kubernetes sa
+      command: kubectl apply -f /home/kuber/sa/
+
+    - name: Apply Kubernetes rbac
+      command: kubectl apply -f /home/kuber/rbac/
+
+    - name: Install Istio using Helm
+      block:
+        - name: Add Istio Helm repository
+          command: helm repo add istio https://istio-release.storage.googleapis.com/charts
+          become: yes
+
+        - name: Update Helm repositories
+          command: helm repo update
+          become: yes
+
+        - name: Install Istio Base
+          command: helm install istio-base istio/base -n istio-system --create-namespace --version 1.23.4
+          become: yes
+
+        - name: Install Istiod
+          command: helm install istiod istio/istiod -n istio-system --version 1.23.4
+          become: yes
+      ignore_errors: yes
+
+    - name: Apply Kubernetes kiali
+      command: kubectl apply -f /home/kuber/kiali.yaml
+
+    - name: Install wget
+      apt:
+        name: wget
+        state: present
+
+    - name: Download MinIO Client (mc)
+      get_url:
+        url: https://dl.min.io/client/mc/release/linux-amd64/mc
+        dest: /usr/local/bin/mc
+        mode: '0755'
+
+    - name: Set executable permission for mc
+      file:
+        path: /usr/local/bin/mc
+        mode: '0755'
+
+    - name: Wait for MinIO to be ready (60s)
+      pause:
+        seconds: 30
+
+    - name: Alias MinIO server with mc
+      command: mc alias set myminio http://127.0.0.1:30090 minioadmin minioadmin
+
+    - name: Create Loki bucket
+      command: mc mb myminio/loki
+
+    - name: Create Mimir bucket
+      command: mc mb myminio/mimir
+
+    - name: Create Tempo bucket
+      command: mc mb myminio/tempo
+
+    - name: Create Logs bucket
+      command: mc mb myminio/logs
+
+
+

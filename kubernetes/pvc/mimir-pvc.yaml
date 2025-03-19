@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mimir-pvc
+  namespace: observe
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-storage
+  resources:
+    requests:
+      storage: 5Gi

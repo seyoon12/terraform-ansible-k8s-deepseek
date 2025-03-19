@@ -1,0 +1,9 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ProxyConfig
+metadata:
+  name: disable-healthcheck
+  namespace: observe
+spec:
+  proxyMetadata:
+    ISTIO_META_DISABLE_HEALTH_CHECKS: "true"
+

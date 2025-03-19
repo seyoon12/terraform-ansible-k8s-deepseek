@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-webhook
+  namespace: deepseek
+  labels:
+    app: flask-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-webhook
+  template:
+    metadata:
+      labels:
+        app: flask-webhook
+    spec:
+      containers:
+        - name: flask-webhook
+          image: flask-webhook:latest 
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5010
+          env:
+            - name: DEEPSEEK_API_URL
+              value: "http://deepseek-server.deepseek.svc.cluster.local:11434/api/generate"
+      restartPolicy: Always

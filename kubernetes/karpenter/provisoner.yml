@@ -1,0 +1,19 @@
+apiVersion: karpenter.k8s.aws/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  providerRef:
+    name: default
+  ttlSecondsAfterEmpty: 30  # 사용되지 않는 노드는 30초 후 삭제
+  limits:
+    resources:
+      cpu: 1000  # 최대 CPU 리소스 제한
+  requirements:
+    - key: "node.kubernetes.io/instance-type"
+      operator: In
+      values: ["t3.medium"]  # EC2 인스턴스 유형
+    - key: "topology.kubernetes.io/zone"
+      operator: In
+      values: ["ap-northeast-2a", "ap-northeast-2b"]  # 배포 가능한 AZ
+
