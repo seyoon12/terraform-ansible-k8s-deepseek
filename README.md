@@ -1,5 +1,5 @@
 # IaC & Kubernetes
-<img src="https://github.com/user-attachments/assets/f44c77e5-7f92-4cf6-b4e7-f26cf14fe0e2" width="800">
+<img src="https://github.com/user-attachments/assets/e13f2643-7197-4f83-9311-94b2d73d3b77" width="800">
 
 ### 설명
 1) Terraform과 Ansible을 통해 Kubernetes 환경 구축
