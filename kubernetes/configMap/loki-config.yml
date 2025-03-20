@@ -56,8 +56,8 @@ data:
         endpoint: http://minio-headless:9000
         s3: s3://minioadmin@http://minio-headless:9000/api/v1/service-account-credentials.:9000/loki
         region: null
-        access_key_id: minioadmin
-        secret_access_key: minioadmin
+        access_key_id: # s3 OR Minio key
+        secret_access_key: # s3 OR Minio key
         s3forcepathstyle: true
       tsdb_shipper:
         active_index_directory: /data/tsdb-index
