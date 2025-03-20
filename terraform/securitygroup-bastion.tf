@@ -8,10 +8,5 @@ module "bastion_sg" {
         { rule = "http-80-tcp", cidr_blocks = ["0.0.0.0/0"] },  # 80
         { rule = "https-443-tcp", cidr_blocks = ["0.0.0.0/0"] } # 443
     ]
-
-    ingress_with_cidr_blocks = [
-        { from_port = 11434, to_port = 11434, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] }
-    ]
-
     egress_rules = ["all-all"]
 }
