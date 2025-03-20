@@ -12,16 +12,8 @@ provider "aws" {
 }
 
 provider "kubernetes" {
-  host                   = "https://<your-cluster-endpoint>"
-  cluster_ca_certificate = base64decode("<your-ca-certificate>")
-  token                  = "<your-kube-token>"
-}
-
-resource "kubernetes_manifest" "nginx_deployment" {
-  manifest = yamldecode(file("nginx_deployment.yaml"))
-}
-
-resource "kubernetes_manifest" "nginx_service" {
-  manifest = yamldecode(file("nginx_service.yaml"))
+  host                   = 
+  cluster_ca_certificate = 
+  token                  = 
 }
 
