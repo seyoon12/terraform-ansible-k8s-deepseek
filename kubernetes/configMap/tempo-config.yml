@@ -58,8 +58,8 @@ data:
         s3:
           bucket: tempo
           endpoint: minio-headless:9000
-          access_key: minioadmin
-          secret_key: minioadmin
+          access_key: # s3 OR Minio key
+          secret_key: # s3 OR Minio key
           region: null
           insecure: true
         wal:
