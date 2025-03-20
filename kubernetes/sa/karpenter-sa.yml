@@ -4,5 +4,5 @@ metadata:
   name: karpenter
   namespace: karpenter
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::535597585675:role/KarpenterNodeRole"
+    eks.amazonaws.com/role-arn: # aws arn 필요
 
