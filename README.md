@@ -18,3 +18,6 @@
 
 ### 구조
 <img src="https://github.com/user-attachments/assets/258e90b5-4db8-424e-adfb-413ece71c137" width="1200">
+
+### 작업기간
+3일
