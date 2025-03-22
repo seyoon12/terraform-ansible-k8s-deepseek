@@ -1,30 +1,36 @@
 resource "aws_vpc" "main" {
-  cidr_block       = var.vpc_cidr_block
+  cidr_block = var.vpc_cidr_block
+
   tags = {
-    Name = "vpc_main"
+    Name = var.vpc_name
   }
 }
 
 resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = element(var.vpc_public_subnets, 0)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = element(var.vpc_public_subnets, 0)
   availability_zone = element(var.vpc_availability_zones, 0)
+
   tags = {
     Name = "subnet_public_main"
+    Type = "public"
   }
 }
 
 resource "aws_subnet" "private_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = element(var.vpc_private_subnets, 0)
-  availability_zone = element(var.vpc_availability_zones, 0)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = element(var.vpc_private_subnets, 0)
+  availability_zone = element(var.vpc_availability_zones, 1)
+
   tags = {
     Name = "subnet_private_main"
+    Type = "private"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
+
   tags = {
     Name = "main-igw"
   }
