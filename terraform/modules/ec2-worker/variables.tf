@@ -21,6 +21,6 @@ variable "availability_zone" {
   type = string
 }
 
-variable "security_group_ids" {
+variable "workernodes_sg_group_id" {
   type = list(string)
 }
