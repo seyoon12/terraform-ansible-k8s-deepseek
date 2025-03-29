@@ -7,12 +7,23 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public_subnet" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(var.vpc_public_subnets, 0)
-  availability_zone = element(var.vpc_availability_zones, 0)
+  for_each = {
+    subnet1 = {
+      cidr = var.vpc_public_subnets[0]
+      az   = var.vpc_availability_zones[0]
+    }
+    subnet2 = {
+      cidr = var.vpc_public_subnets[1]
+      az   = var.vpc_availability_zones[1]
+    }
+  }
 
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = each.value.cidr
+  availability_zone = each.value.az
+  map_public_ip_on_launch = true
   tags = {
-    Name = "subnet_public_main"
+    Name = "subnet_${each.key}"
     Type = "public"
   }
 }
@@ -50,12 +61,12 @@ resource "aws_route" "route_igw" {
   gateway_id             = aws_internet_gateway.igw.id
 }
 
-resource "aws_route_table_association" "route_table_association_1" {
-  subnet_id      = aws_subnet.public_subnet.id
+resource "aws_route_table_association" "public_subnet_1" {
+  subnet_id      = aws_subnet.public_subnet["subnet1"].id
   route_table_id = aws_route_table.route_table.id
 }
 
-resource "aws_route_table_association" "route_table_association_2" {
-  subnet_id      = aws_subnet.private_subnet.id
+resource "aws_route_table_association" "public_subnet_2" {
+  subnet_id      = aws_subnet.public_subnet["subnet2"].id
   route_table_id = aws_route_table.route_table.id
 }

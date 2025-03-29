@@ -7,36 +7,25 @@ terraform {
 }
 
 provider "aws" {
-    profile = "default" # $HOME/.aws/credentials 에 있는 계정 정보를 사용하여 로그인
-    region  = var.aws_region # default = ap-northeast-2
+    profile = "default"
+    region  = var.aws_region
 }
 
 module "vpc" {
-  source = "./vpc-module"
+  source = "../../modules/vpc"
 }
 
 module "keypair" {
-  source = "./keyPair-module"
+  source = "../../modules/keyPair"
 }
 
 module "sg" {
-  source = "./sg"
+  source = "../../modules/sg"
   vpc_id = module.vpc.vpc_id
 }
 
-module "master_node" {
-  source            = "./ec2-master-module"
-  subnet_id         = module.vpc.public_subnet_id   
-  availability_zone = module.vpc.availability_zone_0
-  key_name          = module.keypair.k8s_keyname
-  masternode_sg_group_id = [module.sg.masternode_sg_group_id]
-  user_data             = file("${path.module}/scripts/master-userdata.sh")
-  ami               = var.ami
-  instance_type     = var.instance_type
-}
-
 module "worker_node_01" {
-  source            = "./ec2-worker-module/"
+  source            = "../../modules/ec2-worker"
   subnet_id         = module.vpc.public_subnet_id
   availability_zone = module.vpc.availability_zone_0
   key_name          = module.keypair.k8s_keyname
@@ -47,7 +36,7 @@ module "worker_node_01" {
 }
 
 module "worker_node_02" {
-  source            = "./ec2-worker-module/"
+  source            = "../../modules/ec2-worker"
   subnet_id         = module.vpc.public_subnet_id
   availability_zone = module.vpc.availability_zone_0
   key_name          = module.keypair.k8s_keyname

@@ -4,7 +4,7 @@ resource "aws_instance" "worker_node" {
   subnet_id              = var.subnet_id
   key_name               = var.key_name
   availability_zone      = var.availability_zone
-  vpc_security_group_ids     = var.workernodes_sg_group_ids
+  vpc_security_group_ids = var.security_group_ids
   associate_public_ip_address = true
   
   root_block_device {

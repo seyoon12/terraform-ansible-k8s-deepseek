@@ -3,14 +3,9 @@ variable "aws_region" {
   default = "ap-northeast-2"  
 }
 
-variable "master_user_data_path" {
-  type        = string
-  default     = "../scripts/master-userdata.sh"
-}
-
 variable "worker_user_data_path" {
   type        = string
-  default     = "../scripts/worker-userdata.sh"
+  default     = "../../scripts/worker-userdata.sh"
 }
 
 variable "ami" {

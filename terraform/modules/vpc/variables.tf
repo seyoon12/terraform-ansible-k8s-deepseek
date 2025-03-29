@@ -16,10 +16,15 @@ variable "vpc_availability_zones" {
   default     = ["ap-northeast-2a", "ap-northeast-2b"]
 }
 
-variable "vpc_public_subnets" {
+variable "vpc_public_subnet" {
   description = "Public Subnet CIDRs"
   type        = list(string)
   default     = ["10.0.1.0/24"]
+}
+
+variable "vpc_public_subnets" {
+  type    = list(string)
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "vpc_private_subnets" {

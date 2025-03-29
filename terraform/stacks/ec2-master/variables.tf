@@ -1,5 +1,11 @@
-variable "user_data" {
+variable "aws_region" {
+  type = string
+  default = "ap-northeast-2"  
+}
+
+variable "master_user_data_path" {
   type        = string
+  default     = "../../scripts/master-userdata.sh"
 }
 
 variable "ami" {
@@ -14,18 +20,3 @@ variable "instance_type" {
   type        = string
 }
 
-variable "subnet_id" {
-  type = string
-}
-
-variable "key_name" {
-  type = string
-}
-
-variable "availability_zone" {
-  type = string
-}
-
-variable "masternode_sg_group_id" {
-  type = list(string)
-}
