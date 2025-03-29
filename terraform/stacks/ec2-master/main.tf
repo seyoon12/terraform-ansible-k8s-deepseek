@@ -25,7 +25,7 @@ module "sg" {
 }
 
 module "master_node" {
-  source            = "../../modules/ec2-master-module"
+  source            = "../../modules/ec2-master"
   subnet_id         = module.vpc.public_subnet_id   
   availability_zone = module.vpc.availability_zone_0
   key_name          = module.keypair.k8s_keyname
