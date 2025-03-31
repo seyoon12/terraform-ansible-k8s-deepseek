@@ -6,7 +6,7 @@ Istio, Longhorn, LGTM 스택 등을 통해 가용성·확장성·관측성을 �
 
 ---
 
-## 구축 자동화 흐름
+## working process
 
 <img src="https://github.com/user-attachments/assets/e13f2643-7197-4f83-9311-94b2d73d3b77" width="800">
 
